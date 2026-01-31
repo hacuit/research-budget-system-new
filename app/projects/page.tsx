@@ -9,13 +9,13 @@ import { Project, Expense } from "@/types";
 import { Plus, Calendar, Building2, Wallet } from "lucide-react";
 
 export default function ProjectsPage() {
-    const { user } = useAuth();
+    const { isAuthorized } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) {
+        if (!isAuthorized) {
             setLoading(false);
             return;
         }
@@ -49,7 +49,7 @@ export default function ProjectsPage() {
             unsubProjects();
             unsubExpenses();
         };
-    }, [user]);
+    }, [isAuthorized]);
 
     // 과제별 총 지출 계산
     const getProjectExpenses = (projectId: string) => {
@@ -154,10 +154,10 @@ export default function ProjectsPage() {
                                     <div className="w-full bg-gray-100 rounded-full h-2.5">
                                         <div
                                             className={`h-2.5 rounded-full ${spentPercent > 90
-                                                    ? "bg-red-500"
-                                                    : spentPercent > 70
-                                                        ? "bg-yellow-500"
-                                                        : "bg-indigo-600"
+                                                ? "bg-red-500"
+                                                : spentPercent > 70
+                                                    ? "bg-yellow-500"
+                                                    : "bg-indigo-600"
                                                 }`}
                                             style={{ width: `${Math.min(spentPercent, 100)}%` }}
                                         ></div>
