@@ -23,9 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
-            // 로그인 상태이고 현재 페이지가 로그인 페이지라면 대시보드로 이동
-            if (user && window.location.pathname === "/login") {
+
+            const isLoginPage = window.location.pathname === "/login";
+
+            if (user && isLoginPage) {
                 router.push("/");
+            } else if (!user && !isLoginPage) {
+                // 로그인되지 않은 사용자가 보호된 페이지에 접근하면 로그인 페이지로 리다이렉트
+                router.push("/login");
             }
         });
         return () => unsubscribe();
