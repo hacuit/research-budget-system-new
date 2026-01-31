@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithRedirect, signOut } from "firebase/auth";
 import { auth } from "@/firebase/config";
 import { useRouter } from "next/navigation";
 
@@ -23,8 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
-            if (!user) {
-                // router.push("/login"); // 로그인 안되어 있으면 로그인 페이지로 보냄 (선택 사항)
+            // 로그인 상태이고 현재 페이지가 로그인 페이지라면 대시보드로 이동
+            if (user && window.location.pathname === "/login") {
+                router.push("/");
             }
         });
         return () => unsubscribe();
@@ -33,11 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const signInWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            await signInWithPopup(auth, provider);
-            router.push("/");
+            // 모바일 인앱 브라우저(카카오 등) 호환성을 위해 리디렉션 방식 사용
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error("Login failed", error);
-            alert("로그인에 실패했습니다. Firebase Console에서 Authentication 설정을 확인해주세요.");
+            alert("로그인 시작 중 오류가 발생했습니다.");
         }
     };
 
