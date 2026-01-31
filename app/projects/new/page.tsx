@@ -15,7 +15,7 @@ import { ArrowLeft, Save, Calculator } from "lucide-react";
 import Link from "next/link";
 
 export default function NewProjectPage() {
-    const { user } = useAuth();
+    const { isAuthorized } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
@@ -79,7 +79,7 @@ export default function NewProjectPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return alert("로그인이 필요합니다.");
+        if (!isAuthorized) return alert("로그인이 필요합니다.");
         if (totalRatio !== 100)
             return alert("비목별 비율 합계가 100%가 되어야 합니다.");
 
@@ -90,7 +90,7 @@ export default function NewProjectPage() {
                 totalBudget: Number(formData.totalBudget),
                 directCostRatio: Number(formData.directCostRatio),
                 budgetAllocation: calculateBudgetAllocation(),
-                userId: user.uid,
+                userId: "public",
                 createdAt: serverTimestamp(),
             });
             alert("과제가 등록되었습니다!");

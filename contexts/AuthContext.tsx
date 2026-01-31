@@ -1,59 +1,60 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithRedirect, signOut } from "firebase/auth";
-import { auth } from "@/firebase/config";
 import { useRouter } from "next/navigation";
 
 interface AuthContextType {
-    user: User | null;
+    isAuthorized: boolean;
     loading: boolean;
-    signInWithGoogle: () => Promise<void>;
-    logout: () => Promise<void>;
+    login: (passkey: string) => boolean;
+    logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
+// 여기에 사용할 암호를 설정하세요 (기본값: 1234)
+const SYSTEM_PASSKEY = process.env.NEXT_PUBLIC_PASSKEY || "1234";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [isAuthorized, setIsAuthorized] = useState(false);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-            setLoading(false);
+        // 브라우저에 저장된 인증 상태 확인
+        const authStatus = localStorage.getItem("app_authorized");
+        if (authStatus === "true") {
+            setIsAuthorized(true);
+        }
+        setLoading(false);
 
-            const isLoginPage = window.location.pathname === "/login";
-
-            if (user && isLoginPage) {
-                router.push("/");
-            } else if (!user && !isLoginPage) {
-                // 로그인되지 않은 사용자가 보호된 페이지에 접근하면 로그인 페이지로 리다이렉트
-                router.push("/login");
-            }
-        });
-        return () => unsubscribe();
+        // 보호된 페이지 체크
+        const isLoginPage = window.location.pathname === "/login";
+        if (authStatus !== "true" && !isLoginPage) {
+            router.push("/login");
+        } else if (authStatus === "true" && isLoginPage) {
+            router.push("/");
+        }
     }, [router]);
 
-    const signInWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            // 모바일 인앱 브라우저(카카오 등) 호환성을 위해 리디렉션 방식 사용
-            await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error("Login failed", error);
-            alert("로그인 시작 중 오류가 발생했습니다.");
+    const login = (passkey: string) => {
+        if (passkey === SYSTEM_PASSKEY) {
+            localStorage.setItem("app_authorized", "true");
+            setIsAuthorized(true);
+            router.push("/");
+            return true;
         }
+        return false;
     };
 
-    const logout = async () => {
-        await signOut(auth);
+    const logout = () => {
+        localStorage.removeItem("app_authorized");
+        setIsAuthorized(false);
         router.push("/login");
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+        <AuthContext.Provider value={{ isAuthorized, loading, login, logout }}>
             {!loading && children}
         </AuthContext.Provider>
     );

@@ -16,7 +16,7 @@ import { ArrowLeft, Save, Calculator } from "lucide-react";
 import Link from "next/link";
 
 export default function EditProjectPage() {
-    const { user } = useAuth();
+    const { isAuthorized } = useAuth();
     const router = useRouter();
     const params = useParams();
     const projectId = params.id as string;
@@ -124,7 +124,7 @@ export default function EditProjectPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return alert("로그인이 필요합니다.");
+        if (!isAuthorized) return alert("로그인이 필요합니다.");
         // 비율 합계 검증 완화 (소수점 문제 등으로 99~101 사이면 허용하거나, 정확히 100을 요구할 수도 있음)
         // 여기서는 정확히 100을 요구하되 사용자가 조정하게 함
         if (Math.abs(totalRatio - 100) > 0.1)

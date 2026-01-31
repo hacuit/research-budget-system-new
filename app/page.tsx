@@ -9,13 +9,13 @@ import { Project, Expense } from "@/types";
 import { FolderKanban, Plus, TrendingUp } from "lucide-react";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { isAuthorized } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthorized) {
       setLoading(false);
       return;
     }
@@ -49,7 +49,7 @@ export default function Home() {
       unsubProjects();
       unsubExpenses();
     };
-  }, [user]);
+  }, [isAuthorized]);
 
   // 전체 통계 계산
   const totalBudget = projects.reduce((sum, p) => sum + p.totalBudget, 0);
@@ -191,10 +191,10 @@ export default function Home() {
                           <div className="w-16 bg-gray-100 rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${percent > 90
-                                  ? "bg-red-500"
-                                  : percent > 70
-                                    ? "bg-yellow-500"
-                                    : "bg-indigo-500"
+                                ? "bg-red-500"
+                                : percent > 70
+                                  ? "bg-yellow-500"
+                                  : "bg-indigo-500"
                                 }`}
                               style={{ width: `${Math.min(percent, 100)}%` }}
                             ></div>

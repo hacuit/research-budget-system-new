@@ -10,7 +10,7 @@ import { Calendar, CreditCard, FileText, DollarSign, ArrowLeft } from "lucide-re
 import Link from "next/link";
 
 export default function ExpensesPage() {
-    const { user } = useAuth();
+    const { isAuthorized } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const preselectedProjectId = searchParams.get("projectId");
@@ -35,7 +35,7 @@ export default function ExpensesPage() {
 
     // 과제 목록 가져오기
     useEffect(() => {
-        if (!user) return;
+        if (!isAuthorized) return;
 
         const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
         const unsub = onSnapshot(q, (snapshot) => {
@@ -56,7 +56,7 @@ export default function ExpensesPage() {
         });
 
         return () => unsub();
-    }, [user, preselectedProjectId]);
+    }, [isAuthorized, preselectedProjectId]);
 
     // 과제 선택 시 상세 정보 업데이트
     const handleProjectChange = (projectId: string) => {
@@ -67,7 +67,7 @@ export default function ExpensesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return alert("로그인이 필요합니다.");
+        if (!isAuthorized) return alert("로그인이 필요합니다.");
         if (!formData.projectId) return alert("과제를 선택해주세요.");
 
         setLoading(true);
@@ -75,7 +75,7 @@ export default function ExpensesPage() {
             await addDoc(collection(db, "expenses"), {
                 ...formData,
                 amount: Number(formData.amount),
-                userId: user.uid,
+                userId: "public",
                 createdAt: serverTimestamp(),
             });
             alert("지출이 등록되었습니다!");

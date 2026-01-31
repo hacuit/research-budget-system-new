@@ -14,7 +14,7 @@ const menuItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const { isAuthorized, logout } = useAuth();
 
     const isActive = (href: string) => {
         if (href === "/") return pathname === "/";
@@ -46,20 +46,16 @@ export default function Sidebar() {
             <div className="p-4 border-t border-gray-100">
                 <div className="flex items-center gap-3 px-4 py-2 mb-2">
                     <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold overflow-hidden">
-                        {user?.photoURL ? (
-                            <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            user?.displayName?.charAt(0) || "U"
-                        )}
+                        A
                     </div>
                     <div className="text-sm flex-1 min-w-0">
                         <p className="font-medium text-gray-700 truncate">
-                            {user?.displayName || "사용자"}
+                            Admin User
                         </p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        <p className="text-xs text-gray-500 truncate">Passkey Mode</p>
                     </div>
                 </div>
-                {user && (
+                {isAuthorized && (
                     <button
                         onClick={logout}
                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
