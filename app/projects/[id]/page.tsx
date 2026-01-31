@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import { Project, Expense, CATEGORY_COLORS, BUDGET_CATEGORIES } from "@/types";
 import {
@@ -12,11 +12,14 @@ import {
     Building2,
     TrendingUp,
     Plus,
+    Edit,
+    Trash2,
 } from "lucide-react";
 
 export default function ProjectDetailPage() {
     const params = useParams();
     const projectId = params.id as string;
+    const router = useRouter();
 
     const [project, setProject] = useState<Project | null>(null);
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -57,9 +60,6 @@ export default function ProjectDetailPage() {
         };
     }, [projectId]);
 
-    if (loading) return <div className="p-8">로딩 중...</div>;
-    if (!project) return <div className="p-8">과제를 찾을 수 없습니다.</div>;
-
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("ko-KR").format(amount) + "원";
     };
@@ -75,13 +75,42 @@ export default function ProjectDetailPage() {
             .reduce((sum, e) => sum + e.amount, 0);
     };
 
+    if (loading) return <div className="p-8">로딩 중...</div>;
+    if (!project) return <div className="p-8">과제를 찾을 수 없습니다.</div>;
+
     // 전체 지출 합계
     const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
     const totalBalance = project.totalBudget - totalSpent;
     const spentPercent = (totalSpent / project.totalBudget) * 100;
 
+    // 과제 삭제 핸들러
+    const handleDelete = async () => {
+        if (!confirm("정말 이 과제를 삭제하시겠습니까?\n모든 지출 내역도 함께 영구 삭제됩니다.")) {
+            return;
+        }
+
+        try {
+            // 1. 지출 내역 일괄 삭제 (Batch)
+            const batch = writeBatch(db);
+            expenses.forEach((expense) => {
+                const expenseRef = doc(db, "expenses", expense.id);
+                batch.delete(expenseRef);
+            });
+            await batch.commit();
+
+            // 2. 과제 삭제
+            await deleteDoc(doc(db, "projects", projectId));
+
+            alert("삭제되었습니다.");
+            router.replace("/projects");
+        } catch (error) {
+            console.error("Delete error:", error);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto pb-20 md:pb-0">
             {/* 헤더 */}
             <div className="mb-8">
                 <Link
@@ -92,7 +121,7 @@ export default function ProjectDetailPage() {
                     목록으로
                 </Link>
 
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mb-2">
                             {project.type}
@@ -100,13 +129,30 @@ export default function ProjectDetailPage() {
                         <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
                         <p className="text-gray-500 mt-1">{project.code}</p>
                     </div>
-                    <Link
-                        href={`/expenses?projectId=${projectId}`}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-                    >
-                        <Plus size={18} />
-                        지출 등록
-                    </Link>
+
+                    <div className="flex items-center gap-2 self-end md:self-auto">
+                        <Link
+                            href={`/projects/${projectId}/edit`}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            <Edit size={16} />
+                            수정
+                        </Link>
+                        <button
+                            onClick={handleDelete}
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                            <Trash2 size={16} />
+                            삭제
+                        </button>
+                        <Link
+                            href={`/expenses?projectId=${projectId}`}
+                            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-indigo-700 transition-colors font-medium ml-2"
+                        >
+                            <Plus size={16} />
+                            지출 등록
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-gray-500 mt-4">
@@ -135,10 +181,10 @@ export default function ProjectDetailPage() {
                 <div className="w-full bg-gray-100 rounded-full h-4 mb-6">
                     <div
                         className={`h-4 rounded-full ${spentPercent > 90
-                                ? "bg-red-500"
-                                : spentPercent > 70
-                                    ? "bg-yellow-500"
-                                    : "bg-indigo-600"
+                            ? "bg-red-500"
+                            : spentPercent > 70
+                                ? "bg-yellow-500"
+                                : "bg-indigo-600"
                             }`}
                         style={{ width: `${Math.min(spentPercent, 100)}%` }}
                     ></div>
@@ -196,10 +242,10 @@ export default function ProjectDetailPage() {
                                 <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
                                     <div
                                         className={`h-2 rounded-full ${percent > 100
-                                                ? "bg-red-500"
-                                                : percent > 90
-                                                    ? "bg-yellow-500"
-                                                    : "bg-indigo-500"
+                                            ? "bg-red-500"
+                                            : percent > 90
+                                                ? "bg-yellow-500"
+                                                : "bg-indigo-500"
                                             }`}
                                         style={{ width: `${Math.min(percent, 100)}%` }}
                                     ></div>
