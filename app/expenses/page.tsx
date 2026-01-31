@@ -19,7 +19,13 @@ export default function ExpensesPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        projectId: string;
+        date: string;
+        category: string;
+        amount: string;
+        description: string;
+    }>({
         projectId: preselectedProjectId || "",
         date: new Date().toISOString().split("T")[0],
         category: BUDGET_CATEGORIES[0],

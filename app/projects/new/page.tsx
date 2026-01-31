@@ -19,7 +19,16 @@ export default function NewProjectPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        title: string;
+        code: string;
+        type: string;
+        agency: string;
+        startDate: string;
+        endDate: string;
+        totalBudget: string;
+        directCostRatio: string;
+    }>({
         title: "",
         code: "",
         type: PROJECT_TYPES[0],
