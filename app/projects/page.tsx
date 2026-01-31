@@ -32,6 +32,10 @@ export default function ProjectsPage() {
                 ...doc.data(),
             })) as Project[];
             setProjects(data);
+            if (data.length === 0) setLoading(false);
+        }, (err) => {
+            console.error(err);
+            setLoading(false);
         });
 
         // 지출 내역 가져오기 (전체)
@@ -42,6 +46,9 @@ export default function ProjectsPage() {
                 ...doc.data(),
             })) as Expense[];
             setExpenses(data);
+            setLoading(false);
+        }, (err) => {
+            console.error(err);
             setLoading(false);
         });
 

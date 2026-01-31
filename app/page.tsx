@@ -32,6 +32,11 @@ export default function Home() {
         ...doc.data(),
       })) as Project[];
       setProjects(data);
+      // 데이터가 아예 없는 경우에도 로딩을 끝낼 수 있도록 보조
+      if (data.length === 0) setLoading(false);
+    }, (err) => {
+      console.error("Projects load error:", err);
+      setLoading(false);
     });
 
     // 지출 내역 가져오기
@@ -42,6 +47,9 @@ export default function Home() {
         ...doc.data(),
       })) as Expense[];
       setExpenses(data);
+      setLoading(false);
+    }, (err) => {
+      console.error("Expenses load error:", err);
       setLoading(false);
     });
 
