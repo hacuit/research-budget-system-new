@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   description: "Research Project Budget Management System",
 };
 
+import MobileNav from "@/components/MobileNav";
+
+// ... (existing imports)
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,9 +26,10 @@ export default function RootLayout({
         <Providers>
           <div className="flex min-h-screen">
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
+            <main className="flex-1 md:ml-64 p-4 md:p-8 mb-16 md:mb-0">
               {children}
             </main>
+            <MobileNav />
           </div>
         </Providers>
       </body>

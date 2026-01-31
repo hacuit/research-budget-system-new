@@ -22,7 +22,7 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="w-64 bg-white shadow-md h-screen fixed left-0 top-0 flex flex-col z-10">
+        <aside className="hidden md:flex w-64 bg-white shadow-md h-screen fixed left-0 top-0 flex-col z-10">
             <div className="p-6 border-b border-gray-100">
                 <h1 className="text-xl font-bold text-indigo-700 flex items-center gap-2">
                     연구과제 관리
@@ -34,8 +34,8 @@ export default function Sidebar() {
                         key={item.href}
                         href={item.href}
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
-                                ? "bg-indigo-50 text-indigo-600 font-semibold"
-                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            ? "bg-indigo-50 text-indigo-600 font-semibold"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                             }`}
                     >
                         <item.icon size={20} />
